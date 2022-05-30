@@ -8,7 +8,7 @@
 	#include <string.h> //for memset
 	#include <time.h>
 
-	#define GEGEVENS "C:\\Gebruikers\\boghe\\Documenten_pc\\UDP_Server.txt"
+	#define GEGEVENS "C:\\Gebruikers\\boghe\\Documenten_pc\netwerk\Netwerk\UDP_ServerDB.txt"
 
 	void OSInit( void )
 	{
@@ -38,7 +38,7 @@
 	#include <string.h> //for memset
 	#include <time.h>
 
-	#define GEGEVENS "C:\\Gebruikers\\boghe\\Documenten_pc\\UDP_Server.txt"
+	#define GEGEVENS "C:\\Gebruikers\\boghe\\Documenten_pc\netwerk\Netwerk\UDP_ServerDB.txt"
 	int OSInit( void ) {}
 	int OSCleanup( void ) {}
 #endif
@@ -157,8 +157,9 @@ void execution( int internet_socket )
 				{
 					buffer[number_of_bytes_received] = '\0';
 					printf( "Received : %s\n", buffer );
-					//weg schrijven file  fwrite(buffer, 1, sizeof(buffer), inputGegevens);
-					//  fclose(inputGegevens);
+					fwrite(&buffer, 1, sizeof(buffer), inputGegevens);
+					fwrite("\n", sizeof(char), 1, inputGegevens);
+					fclose(inputGegevens);
 					pkt++;
 				}
 				printf("pakketen nr: %d\n",a+1 );
@@ -189,3 +190,5 @@ void cleanup( int internet_socket )
 
 // extra info: bij server te laten runnen zorg dat de poorten in packet sendor( de client) disabled zijn (to be sure)
 // anders kans op bind errors als deze al gebruikt zijn bij pakcet sender als server te gebruiken ipv client
+
+//gcc -Wall -pedantic UDPserver.c -l ws2_32 -o UDPserver.exe
