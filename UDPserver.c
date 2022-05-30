@@ -8,7 +8,6 @@
 	#include <string.h> //for memset
 	#include <time.h>
 
-	#define GEGEVENS "C:\\Gebruikers\\boghe\\Documenten_pc\netwerk\Netwerk\UDP_ServerDB.txt"
 
 	void OSInit( void )
 	{
@@ -38,7 +37,6 @@
 	#include <string.h> //for memset
 	#include <time.h>
 
-	#define GEGEVENS "C:\\Gebruikers\\boghe\\Documenten_pc\netwerk\Netwerk\UDP_ServerDB.txt"
 	int OSInit( void ) {}
 	int OSCleanup( void ) {}
 #endif
@@ -57,7 +55,6 @@ int main( int argc, char * argv[] )
 
 	int internet_socket = initialization();
 
-	FILE * inputGegevens = fopen(GEGEVENS, "w");
 	/////////////
 	//Execution//
 	/////////////
@@ -84,6 +81,8 @@ int initialization()
 	internet_address_setup.ai_family = AF_UNSPEC;
 	internet_address_setup.ai_socktype = SOCK_DGRAM;
 	internet_address_setup.ai_flags = AI_PASSIVE;
+
+
 	int getaddrinfo_return = getaddrinfo("192.168.0.237", "24020", &internet_address_setup, &internet_address_result );
 	if( getaddrinfo_return != 0 )
 	{
@@ -139,15 +138,31 @@ void execution( int internet_socket )
 	int a=0; //hoeveel pakketen er wordtn afgeleverd
 
 	int pkt=0;
-	int timeout = 5000;
+	int timeout = 10000;
+
+	FILE * inputGegevens = fopen("UDP_ServerDB.csv", "w");
+	if (inputGegevens==NULL)
+	{
+		printf("output file error \n");
+		exit(1);
+	}
 
 	if (setsockopt(internet_socket, SOL_SOCKET, SO_RCVTIMEO,&timeout,sizeof(timeout)))
 		{
 			perror("Error");
 		}
-	time_t begin = time(NULL);
+		clock_t begin_time;
+		clock_t begin_packet;
+		float tempMax=0.0;
+		float tempMin=500.0;
 		for (a=0; a<10; a++) //hoeveel pakketten je wilt ontvangen
 			{
+				if (a==0)
+				{
+					begin_time = clock(); //begin tijd vanaf 0 voor totale tijd
+				}
+
+				begin_packet = clock();	//begin voor tijd per pakket
 				number_of_bytes_received = recvfrom( internet_socket, buffer, ( sizeof buffer ) - 1, 0, (struct sockaddr *) &client_internet_address, &client_internet_address_length );
 				if( number_of_bytes_received == -1 )
 				{
@@ -156,21 +171,52 @@ void execution( int internet_socket )
 				else
 				{
 					buffer[number_of_bytes_received] = '\0';
-					printf( "Received : %s\n", buffer );
-					fwrite(&buffer, 1, sizeof(buffer), inputGegevens);
-					fwrite("\n", sizeof(char), 1, inputGegevens);
-					fclose(inputGegevens);
-					pkt++;
+					printf( "\n Pakket : %s\n", buffer );	//print pakket
+					fwrite(&buffer, strlen(buffer), 1, inputGegevens);	//wegschrijven van info pakket
+					fwrite("\n", sizeof(char), 1, inputGegevens);	//tabje
+					pkt++;	//counter hoeveel pakketen er zijn gelukt
 				}
-				printf("pakketen nr: %d\n",a+1 );
-
+				clock_t end_packet = clock();	//einde klok pakket
+				float elapsed_packet = (double)(end_packet - begin_packet) / CLOCKS_PER_SEC;	//berekening pakket tijd
+				printf("tijd voor pakket %d: %.4f sec\n", a+1, elapsed_packet);	//tijd ervan in seconden
+				if (elapsed_packet > tempMax)
+				{
+					tempMax=elapsed_packet;
+				}
+				if (elapsed_packet < tempMin)
+				{
+					tempMin=elapsed_packet;
+				}
 		}
+		clock_t end_time = clock();	//einde klok totaal
+		float elapsed_time = (double)(end_time - begin_time) / CLOCKS_PER_SEC;	//berekening totaal tijd
+		printf("\n totaal tijd alle pakketen: %.4f sec\n", elapsed_time);	//tijd ervan in seconden
+		printf("er zijn %d pakketen aangekomen van de %d\n",pkt, a );	//hoeveel pakketen verloren
+		float avg= elapsed_time/a;
+		printf("per pakket is de max tijd: %.4f , de Min tijd: %.4f en de gemiddelde tijd %.4f", tempMax, tempMin, avg );
 
-printf("er zijn %d pakketen aangekomen van de %d\n",pkt, a );
-time_t end = time(NULL);
-//weg schrijven file  fwrite(pkt, 1, sizeof(pkt), inputGegevens);
-//  fclose(inputGegevens);
-printf("tijd nodig gehad voor alle ontvangen pakketen: %d seconds\n", (end - begin));
+		//gegevens inladen
+		char tmp[50] = "\0";
+
+		sprintf(tmp, "totaal aangekomen pakketen: %d \n",pkt);
+		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
+
+		sprintf(tmp, "totaal gevraagde pakketen : %d \n",a);
+		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
+
+		sprintf(tmp, "totaal aantal tijd : %d \n",elapsed_time);
+		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
+
+		sprintf(tmp, "max tijd tussen een pakket : %d \n",tempMax);
+		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
+
+		sprintf(tmp, "min tijd tussen een pakket : %d \n",tempMin);
+		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
+
+		sprintf(tmp, "gemiddelde tijd tussen een pakket : %d \n",avg);
+		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
+
+		fclose(inputGegevens);
 
 	//Step 2.2
 	int number_of_bytes_send = 0;
@@ -185,6 +231,7 @@ void cleanup( int internet_socket )
 {
 	//Step 3.1
 	close( internet_socket );
+	WSACleanup();
 }
 
 
