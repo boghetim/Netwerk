@@ -50,6 +50,7 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(void)
 {
+		OSInit();
     fd_set master;    // master beschrijving bestand lijst
     fd_set read_fds;  // temp beschrijving bestand lijst voor select()
     int fdmax;        // maximum beschrijving bestand nr
@@ -77,7 +78,7 @@ int main(void)
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
-    if ((rv = getaddrinfo(::1, PORT, &hints, &ai)) != 0) {
+    if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) != 0) {
         fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
         exit(1);
     }
@@ -182,6 +183,7 @@ int main(void)
         } // END looping door files
     } // END for(;;)--einde van de oneindige loop
 
+		OSCleanup();
     return 0;
 }
 
