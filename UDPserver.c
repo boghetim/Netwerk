@@ -204,16 +204,16 @@ void execution( int internet_socket )
 		sprintf(tmp, "totaal gevraagde pakketen : %d \n",a);
 		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
 
-		sprintf(tmp, "totaal aantal tijd : %d \n",elapsed_time);
+		sprintf(tmp, "totaal aantal tijd : %.4f \n",elapsed_time);
 		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
 
-		sprintf(tmp, "max tijd tussen een pakket : %d \n",tempMax);
+		sprintf(tmp, "max tijd tussen een pakket : %.4f \n",tempMax);
 		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
 
-		sprintf(tmp, "min tijd tussen een pakket : %d \n",tempMin);
+		sprintf(tmp, "min tijd tussen een pakket : %.4f \n",tempMin);
 		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
 
-		sprintf(tmp, "gemiddelde tijd tussen een pakket : %d \n",avg);
+		sprintf(tmp, "gemiddelde tijd tussen een pakket : %.4f \n",avg);
 		fwrite(&tmp, strlen(tmp), 1,inputGegevens);
 
 		fclose(inputGegevens);
