@@ -6,6 +6,7 @@
 	#include <unistd.h> //for close
 	#include <stdlib.h> //for exit
 	#include <string.h> //for memset
+	#include <pthread.h>
 	void OSInit( void )
 	{
 		WSADATA wsaData;
@@ -32,6 +33,7 @@
 	#include <unistd.h> //for close
 	#include <stdlib.h> //for exit
 	#include <string.h> //for memset
+	#include <pthread.h>
 	void OSInit( void ) {}
 	void OSCleanup( void ) {}
 #endif
@@ -133,17 +135,35 @@ void execution( int internet_socket )
 
 	//Step 2.2
 	int number_of_bytes_received = 0;
+	int thread = 0;
 	char buffer[1000];
+
+	while (thread == 0)
 	number_of_bytes_received = recv( internet_socket, buffer, ( sizeof buffer ) - 1, 0 );
-	if( number_of_bytes_received == -1 )
 	{
-		perror( "recv" );
+		if( number_of_bytes_received == -1 )
+		{
+			perror( "recv" );
+		}
+		if (buffer[0] == '[' && number_of_bytes_received > 0)
+		{
+			buffer[number_of_bytes_received] = '\0';
+			printf( "Received : %s\n", buffer );
+		}
+		if (buffer[0] == '[' && number_of_bytes_received ==1)
+		{
+			buffer[number_of_bytes_received] = '\0';
+			printf( "Received : %s\n", buffer );
+		}
+		if (buffer[0] == '!')
+		{
+			buffer[number_of_bytes_received] = '\0';
+			printf( "Received : %s\n", buffer );
+		}
 	}
-	else
-	{
-		buffer[number_of_bytes_received] = '\0';
-		printf( "Received : %s\n", buffer );
-	}
+
+	pthread_exit(NULL);
+	return NULL;
 }
 
 void cleanup( int internet_socket )
