@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int threading =0;
+
 
 void print_ip_address( struct addrinfo * ip )
 {
@@ -32,22 +32,6 @@ void print_ip_address( struct addrinfo * ip )
 	printf( "%s -> %s\n", ip_version, ip_string );
 }
 
-void *dataRecv(void *socket_tread)
-{
-	int socket2 = (intptr_t) socket_tread;
-	char buff_thr[1000]="\0";
-	int number_of_bytes_received=0;
-
-	while(threading == 0)
-	{
-		recv(socket2, buff_thr, sizeof(buff_thr), 0);
-		printf("%s \n", buff_thr);
-	buff_thr[number_of_bytes_received]='\0';
-	}
-	pthread_exit(NULL);
-	return NULL;
-}
-
 int main( int argc, char * argv[] )
 {
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
@@ -65,17 +49,16 @@ int main( int argc, char * argv[] )
 	char ip_server[45] = "\0";
 	char port_server[5] = "\0";
 	printf("geef server IP in \n");
-	scanf("%s",ip_server);
+	scanf("%s\n",ip_server);
 	fflush(stdin);
 	printf("geef server Port in \n");
-	scanf("%s",port_server);
+	scanf("%s\n",port_server);
 	fflush(stdin);
 
 	int getaddrinfo_return;
-	getaddrinfo_return = getaddrinfo( ip_server, port_server, &internet_address_setup, &result_head );
+	getaddrinfo_return = getaddrinfo( "ip_server", "port_server", &internet_address_setup, &result_head );
 	if( getaddrinfo_return != 0 )
 	{
-
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
 		exit( 2 );
 	}
@@ -121,10 +104,6 @@ int main( int argc, char * argv[] )
 	}
 	freeaddrinfo( result_head ); //free the linked list
 
-	//threading
-	pthread_t new_thread;
-
-	pthread_create(&new_thread, NULL, dataRecv, (void *) (intptr_t) internet_socket);
 
 	//data versturen
 	int number_of_bytes_send = 0;
@@ -133,7 +112,7 @@ int main( int argc, char * argv[] )
 	while(1)
 	{
 		printf("welke tekst wil je sturen \n");
-		scanf("%s", buffer_send);
+		scanf("%s\n", buffer_send);
 		fflush(stdin);
 		if (strcmp(buffer_send, "/goodbye") ==0)
 		{
@@ -153,8 +132,6 @@ int main( int argc, char * argv[] )
 
 	//sluiten
 	int shutdown_return;
-	threading =1;
-	pthread_join(new_thread, NULL);
 	shutdown_return = shutdown( internet_socket, SD_SEND );
 	if( shutdown_return == -1 )
 	{
