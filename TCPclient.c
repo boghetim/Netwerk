@@ -145,17 +145,7 @@ void execution( int internet_socket )
 		{
 			perror( "recv" );
 		}
-		if (buffer[0] == '[' && number_of_bytes_received > 0)
-		{
-			buffer[number_of_bytes_received] = '\0';
-			printf( "Received : %s\n", buffer );
-		}
-		if (buffer[0] == '[' && number_of_bytes_received ==1)
-		{
-			buffer[number_of_bytes_received] = '\0';
-			printf( "Received : %s\n", buffer );
-		}
-		if (buffer[0] == '!')
+		else
 		{
 			buffer[number_of_bytes_received] = '\0';
 			printf( "Received : %s\n", buffer );
